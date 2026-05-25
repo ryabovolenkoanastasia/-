@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Практическая работа 6, 7</title>
+</head>
+<body>
+<h3>Задание 1. Анализ информационных моделей</h3>
+<p><strong>Условие:</strong> Определить сумму протяжённости дороги D–G и дороги A–C.</p>
+<script>
+// ============================================================
+// Входные данные
+// ============================================================
+// Матрица смежности графа (A,B,C,D,E,F,G)
+var graph = [
+    [0,1,1,0,0,0,0],  // A
+    [1,0,0,1,0,0,0],  // B
+    [1,0,0,0,1,0,1],  // C
+    [0,1,0,0,0,1,1],  // D
+    [0,0,1,0,0,1,0],  // E
+    [0,0,0,1,1,0,1],  // F
+    [0,0,1,1,0,1,0]   // G
+];
+// Таблица расстояний (рис.2)
+var r = [
+    ['-','-','-',30,3,'-',5],
+    ['-','-','-',21,'-',13,'-'],
+    ['-','-','-','-',39,53,2],
+    [30,21,'-','-','-','-','-'],
+    [3,'-',39,'-','-',8,'-'],
+    ['-',13,53,'-',8,'-','-'],
+    [5,'-',2,'-','-','-','-']
+];
+// ============================================================
+// Строим вторую матрицу смежности (b) по таблице r
+// b[i][j] = 1 если есть дорога, 0 если прочерк
+// ============================================================
+var b = [
+    [0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0]
+];
+for (var i = 0; i < 7; i++) {
+    for (var j = 0; j < 7; j++) {
+        if (r[i][j] != '-') {
+            b[i][j] = 1;
+        }
+    }
+}
+// ============================================================
+// Функция удаления элемента из массива
+// ============================================================
+function removeElement(index, arr) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+        if (i != index) {
+            newArr[newArr.length] = arr[i];
+        }
+    }
+    return newArr;
+}
+// ============================================================
+// Функция вставки элемента в начало массива
+// ============================================================
+function insertFirst(element, arr) {
+    var newArr = [element];
+    for (var i = 0; i < arr.length; i++) {
+        newArr[newArr.length] = arr[i];
+    }
+    return newArr;
+}
+// ============================================================
+// Рекурсивное построение всех перестановок
+// ============================================================
+function getAllPermutations(arr) {
+    if (arr.length == 1) {
+        return [arr];
+    }
+    var result = [];
+    for (var i = 0; i < arr.length; i++) {
+        var removed = arr[i];
+        var rest = removeElement(i, arr);
+        var restPerms = getAllPermutations(rest);
+        for (var j = 0; j < restPerms.length; j++) {
+            result[result.length] = insertFirst(removed, restPerms[j]);
+        }
+    }
+    return result;
+}
+
+// ============================================================
+// Проверка корректности перестановки
+// Перестановка P = [p1,p2,p3,p4,p5,p6,p7]
+// где p1 - номер для A, p2 - для B, ..., p7 - для G
+// ============================================================
+function isCorrect(P) {
+    for (var i = 0; i < 7; i++) {
+        for (var j = 0; j < 7; j++) {
+            var bVal = b[P[i]-1][P[j]-1];
+            var gVal = graph[i][j];
+            if (bVal != gVal) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// ============================================================
+// Вычисление суммы: S = r(D,G) + r(A,C)
+// ============================================================
+function calculateSum(P) {
+    var dg = r[P[3]-1][P[6]-1];  // D - 4-й элемент, G - 7-й
+    var ac = r[P[0]-1][P[2]-1];  // A - 1-й элемент, C - 3-й
+    return dg + ac;
+}
+
+// ============================================================
+// Главная программа
+// ============================================================
+var numbers = [1, 2, 3, 4, 5, 6, 7];
+var allPerms = getAllPermutations(numbers);
+var answer = null;
+var correctPerm = null;
+
+for (var i = 0; i < allPerms.length; i++) {
+    var perm = allPerms[i];
+    if (isCorrect(perm)) {
+        correctPerm = perm;
+        answer = calculateSum(perm);
+        break;  // решение единственное
+    }
+}
+
+// Вывод результата
+document.write("<hr>");
+document.write("<p><strong>Результат перебора:</strong></p>");
+if (correctPerm != null) {
+    document.write("<p>Найдена нумерация:<br>");
+    document.write("A = " + correctPerm[0] + "<br>");
+    document.write("B = " + correctPerm[1] + "<br>");
+    document.write("C = " + correctPerm[2] + "<br>");
+    document.write("D = " + correctPerm[3] + "<br>");
+    document.write("E = " + correctPerm[4] + "<br>");
+    document.write("F = " + correctPerm[5] + "<br>");
+    document.write("G = " + correctPerm[6] + "</p>");
+    document.write("<p>Дорога D-G: " + r[correctPerm[3]-1][correctPerm[6]-1] + " км</p>");
+    document.write("<p>Дорога A-C: " + r[correctPerm[0]-1][correctPerm[2]-1] + " км</p>");
+    document.write("<hr>");
+    document.write("<h3>ОТВЕТ: " + answer + " км</h3>");
+} else {
+    document.write("<p>Решение не найдено</p>");
+}
+</script>
+</body>
+</html>
+
